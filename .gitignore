@@ -1,0 +1,27 @@
+# Build output
+/target/
+
+# Cargo lock (binary crateなので Cargo.lock はコミットする)
+# Cargo.lock
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Project docs (private)
+.docs/
+
+# Environment
+.env
+.env.local
+
+# Test artifacts
+/tmp/
+
+
+# Added by cargo
+
+/target
