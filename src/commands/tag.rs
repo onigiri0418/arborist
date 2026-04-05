@@ -89,9 +89,29 @@ fn colored_status_label(status: &WorktreeStatus) -> String {
 
 fn print_meta(name: &str, m: &meta::WorktreeMeta) {
     println!("{} {}", "Worktree:".bold(), name.bold());
-    println!("  {}  {}", "task:      ".dimmed(), m.task.as_deref().unwrap_or("--"));
-    println!("  {}  {}", "memo:      ".dimmed(), m.memo.as_deref().unwrap_or("--"));
-    println!("  {}  {}", "status:    ".dimmed(), colored_status_label(&m.status));
-    println!("  {}  {}", "created_at:".dimmed(), m.created_at.format("%Y-%m-%d %H:%M UTC").dimmed());
-    println!("  {}  {}", "updated_at:".dimmed(), m.updated_at.format("%Y-%m-%d %H:%M UTC").dimmed());
+    println!(
+        "  {}  {}",
+        "task:      ".dimmed(),
+        m.task.as_deref().unwrap_or("--")
+    );
+    println!(
+        "  {}  {}",
+        "memo:      ".dimmed(),
+        m.memo.as_deref().unwrap_or("--")
+    );
+    println!(
+        "  {}  {}",
+        "status:    ".dimmed(),
+        colored_status_label(&m.status)
+    );
+    println!(
+        "  {}  {}",
+        "created_at:".dimmed(),
+        m.created_at.format("%Y-%m-%d %H:%M UTC").dimmed()
+    );
+    println!(
+        "  {}  {}",
+        "updated_at:".dimmed(),
+        m.updated_at.format("%Y-%m-%d %H:%M UTC").dimmed()
+    );
 }

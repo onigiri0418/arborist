@@ -67,10 +67,7 @@ fn clean_removes_merged_worktrees() {
 
     // Ensure a "main" branch exists for is_branch_merged
     let commit = repo.head().unwrap().peel_to_commit().unwrap();
-    if repo
-        .find_branch("main", git2::BranchType::Local)
-        .is_err()
-    {
+    if repo.find_branch("main", git2::BranchType::Local).is_err() {
         repo.branch("main", &commit, false).unwrap();
     }
 
@@ -106,10 +103,7 @@ fn clean_skips_unmerged_active() {
 
     // Ensure main branch exists
     let commit = repo.head().unwrap().peel_to_commit().unwrap();
-    if repo
-        .find_branch("main", git2::BranchType::Local)
-        .is_err()
-    {
+    if repo.find_branch("main", git2::BranchType::Local).is_err() {
         repo.branch("main", &commit, false).unwrap();
     }
 

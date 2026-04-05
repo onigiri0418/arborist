@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
+#[allow(dead_code)]
 pub enum ArboristError {
     #[error("Not inside a git repository")]
     NotARepo,

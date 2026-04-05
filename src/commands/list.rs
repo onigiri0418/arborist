@@ -80,7 +80,7 @@ fn print_table(worktrees: &[git::WorktreeInfo], store: &meta::MetaStore) {
     );
 
     for wt in worktrees {
-        let is_current = cwd.as_deref().map_or(false, |c| {
+        let is_current = cwd.as_deref().is_some_and(|c| {
             wt.path
                 .canonicalize()
                 .map(|p| c.starts_with(&p))
@@ -100,9 +100,9 @@ fn print_table(worktrees: &[git::WorktreeInfo], store: &meta::MetaStore) {
         };
 
         let m = store.worktrees.get(&wt.name);
-        let status_col = m.map(|m| colored_status(&m.status)).unwrap_or_else(|| {
-            format!("{:<10}", "")
-        });
+        let status_col = m
+            .map(|m| colored_status(&m.status))
+            .unwrap_or_else(|| format!("{:<10}", ""));
         let task = m.and_then(|m| m.task.as_deref()).unwrap_or("");
 
         let name_col = format!("{:<20}", truncate_str(&wt.name, 20));

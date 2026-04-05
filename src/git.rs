@@ -9,6 +9,7 @@ use crate::error::ArboristError;
 
 /// A snapshot of a single worktree's state.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct WorktreeInfo {
     pub name: String,
     pub path: PathBuf,
@@ -70,7 +71,13 @@ pub fn list_worktrees(repo: &Repository) -> Result<Vec<WorktreeInfo>> {
             git2::WorktreeLockStatus::Locked(_)
         );
         let wt_repo = Repository::open(wt.path())?;
-        result.push(build_worktree_info(&wt_repo, name, wt.path(), is_locked, false)?);
+        result.push(build_worktree_info(
+            &wt_repo,
+            name,
+            wt.path(),
+            is_locked,
+            false,
+        )?);
     }
 
     Ok(result)
@@ -132,9 +139,7 @@ pub fn create_worktree(
     }
 
     // Check if branch exists; create it if not.
-    let branch_exists = repo
-        .find_branch(branch, git2::BranchType::Local)
-        .is_ok();
+    let branch_exists = repo.find_branch(branch, git2::BranchType::Local).is_ok();
 
     if !branch_exists {
         let commit = if let Some(base_ref) = base {
@@ -150,10 +155,7 @@ pub fn create_worktree(
     let refname = format!("refs/heads/{branch}");
     let reference = repo.find_reference(&refname)?;
 
-    let name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or(branch);
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or(branch);
 
     let mut opts = git2::WorktreeAddOptions::new();
     opts.reference(Some(&reference));
@@ -264,10 +266,7 @@ pub fn sanitize_branch_name(branch: &str) -> String {
 
 /// Resolve a worktree by name: exact match takes priority, then prefix match.
 /// Returns `WorktreeNotFound` if nothing matches, `AmbiguousName` if multiple prefix matches.
-pub fn resolve_worktree<'a>(
-    worktrees: &'a [WorktreeInfo],
-    name: &str,
-) -> Result<&'a WorktreeInfo> {
+pub fn resolve_worktree<'a>(worktrees: &'a [WorktreeInfo], name: &str) -> Result<&'a WorktreeInfo> {
     // Exact match takes priority over prefix match.
     if let Some(exact) = worktrees.iter().find(|w| w.name == name) {
         return Ok(exact);

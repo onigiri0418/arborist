@@ -49,18 +49,12 @@ pub fn init_repo_with_file() -> (TempDir, Repository) {
 /// The worktree name is derived from `path.file_name()`.
 pub fn add_worktree(repo: &Repository, branch: &str, path: &std::path::Path) {
     let commit = repo.head().unwrap().peel_to_commit().unwrap();
-    if repo
-        .find_branch(branch, git2::BranchType::Local)
-        .is_err()
-    {
+    if repo.find_branch(branch, git2::BranchType::Local).is_err() {
         repo.branch(branch, &commit, false).unwrap();
     }
     let refname = format!("refs/heads/{branch}");
     let reference = repo.find_reference(&refname).unwrap();
-    let name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or(branch);
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or(branch);
     let mut opts = git2::WorktreeAddOptions::new();
     opts.reference(Some(&reference));
     repo.worktree(name, path, Some(&opts)).unwrap();

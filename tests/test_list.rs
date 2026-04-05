@@ -5,7 +5,13 @@ use predicates::prelude::*;
 #[test]
 fn list_shows_main_worktree() {
     let (dir, _repo) = common::init_repo_with_commit();
-    let repo_name = dir.path().file_name().unwrap().to_str().unwrap().to_string();
+    let repo_name = dir
+        .path()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
     common::arborist_in(dir.path())
         .args(["list"])
         .assert()
@@ -66,9 +72,7 @@ fn list_short_output_shows_paths() {
 
     let text = String::from_utf8(output).unwrap();
     // Each line should look like a path (contains the repo dir)
-    assert!(text
-        .trim()
-        .contains(dir.path().to_str().unwrap()));
+    assert!(text.trim().contains(dir.path().to_str().unwrap()));
 }
 
 #[test]

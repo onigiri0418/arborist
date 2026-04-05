@@ -67,10 +67,9 @@ pub fn load(repo: &Repository) -> Result<MetaStore> {
     if !path.exists() {
         return Ok(MetaStore::default());
     }
-    let content = fs::read_to_string(&path)
-        .with_context(|| format!("failed to read {}", path.display()))?;
-    serde_json::from_str(&content)
-        .with_context(|| format!("failed to parse {}", path.display()))
+    let content =
+        fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))?;
+    serde_json::from_str(&content).with_context(|| format!("failed to parse {}", path.display()))
 }
 
 /// Atomically write the metadata store (tmp file + rename).
@@ -78,10 +77,8 @@ pub fn save(repo: &Repository, store: &MetaStore) -> Result<()> {
     let path = meta_path(repo);
     let tmp = path.with_extension("json.tmp");
     let content = serde_json::to_string_pretty(store)?;
-    fs::write(&tmp, &content)
-        .with_context(|| format!("failed to write {}", tmp.display()))?;
-    fs::rename(&tmp, &path)
-        .with_context(|| format!("failed to rename to {}", path.display()))?;
+    fs::write(&tmp, &content).with_context(|| format!("failed to write {}", tmp.display()))?;
+    fs::rename(&tmp, &path).with_context(|| format!("failed to rename to {}", path.display()))?;
     Ok(())
 }
 
@@ -95,7 +92,9 @@ fn meta_path(repo: &Repository) -> PathBuf {
 fn commondir(repo: &Repository) -> PathBuf {
     let git_dir = repo.path();
     let commondir_file = git_dir.join("commondir");
-    if commondir_file.exists() && let Ok(content) = fs::read_to_string(&commondir_file) {
+    if commondir_file.exists()
+        && let Ok(content) = fs::read_to_string(&commondir_file)
+    {
         let relative = content.trim();
         let resolved = git_dir.join(relative);
         if let Ok(canonical) = resolved.canonicalize() {

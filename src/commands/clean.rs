@@ -49,7 +49,11 @@ pub fn run(args: CleanArgs) -> Result<()> {
     if args.dry_run {
         println!("{}", "Would remove:".yellow().bold());
         for wt in &candidates {
-            println!("  {} {}", wt.name.yellow(), format!("({})", wt.path.display()).dimmed());
+            println!(
+                "  {} {}",
+                wt.name.yellow(),
+                format!("({})", wt.path.display()).dimmed()
+            );
         }
         return Ok(());
     }
@@ -68,8 +72,7 @@ pub fn run(args: CleanArgs) -> Result<()> {
             .iter()
             .map(|wt| format!("{} ({})", wt.name, wt.path.display()))
             .collect();
-        let selected = inquire::MultiSelect::new("Select worktrees to remove:", items)
-            .prompt()?;
+        let selected = inquire::MultiSelect::new("Select worktrees to remove:", items).prompt()?;
         for label in &selected {
             // Extract name (before the space)
             let name = label.split(' ').next().unwrap_or("");

@@ -2,7 +2,12 @@ mod common;
 
 use predicates::prelude::*;
 
-fn setup() -> (tempfile::TempDir, git2::Repository, std::path::PathBuf, tempfile::TempDir) {
+fn setup() -> (
+    tempfile::TempDir,
+    git2::Repository,
+    std::path::PathBuf,
+    tempfile::TempDir,
+) {
     let (dir, repo) = common::init_repo_with_commit();
     let wt_dir = tempfile::tempdir().unwrap();
     let wt_path = wt_dir.path().join("my-wt");
@@ -58,10 +63,7 @@ fn tag_display_existing_meta() {
         .args(["tag", "my-wt"])
         .assert()
         .success()
-        .stdout(
-            predicate::str::contains("My task")
-                .and(predicate::str::contains("Some memo")),
-        );
+        .stdout(predicate::str::contains("My task").and(predicate::str::contains("Some memo")));
 }
 
 #[test]
@@ -70,7 +72,14 @@ fn tag_partial_update_preserves_other_fields() {
 
     // Set task and memo
     common::arborist_in(dir.path())
-        .args(["tag", "my-wt", "--task", "Original task", "--memo", "Original memo"])
+        .args([
+            "tag",
+            "my-wt",
+            "--task",
+            "Original task",
+            "--memo",
+            "Original memo",
+        ])
         .assert()
         .success();
 

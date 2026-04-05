@@ -36,7 +36,7 @@ pub fn run(args: StatusArgs) -> Result<()> {
             .and_then(|r| git::diff_stat(&r, &wt.path))
             .unwrap_or_default();
 
-        let is_current = cwd.as_deref().map_or(false, |c| {
+        let is_current = cwd.as_deref().is_some_and(|c| {
             wt.path
                 .canonicalize()
                 .map(|p| c.starts_with(&p))
@@ -85,7 +85,10 @@ pub fn run(args: StatusArgs) -> Result<()> {
                 format!("{} {:<8}", ins, del)
             };
 
-            println!("{:<2} {} {} {} {}", marker, name_col, state_col, diff_col, task);
+            println!(
+                "{:<2} {} {} {} {}",
+                marker, name_col, state_col, diff_col, task
+            );
         }
     }
 
