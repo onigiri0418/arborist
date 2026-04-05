@@ -1,3 +1,6 @@
+// Phase 3 でコマンド実装後に削除する
+#![allow(dead_code)]
+
 mod cli;
 mod commands;
 mod error;

@@ -7,18 +7,13 @@ use chrono::{DateTime, Utc};
 use git2::Repository;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, clap::ValueEnum)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone, PartialEq, clap::ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum WorktreeStatus {
+    #[default]
     Active,
     Paused,
     Done,
-}
-
-impl Default for WorktreeStatus {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -100,13 +95,11 @@ fn meta_path(repo: &Repository) -> PathBuf {
 fn commondir(repo: &Repository) -> PathBuf {
     let git_dir = repo.path();
     let commondir_file = git_dir.join("commondir");
-    if commondir_file.exists() {
-        if let Ok(content) = fs::read_to_string(&commondir_file) {
-            let relative = content.trim();
-            let resolved = git_dir.join(relative);
-            if let Ok(canonical) = resolved.canonicalize() {
-                return canonical;
-            }
+    if commondir_file.exists() && let Ok(content) = fs::read_to_string(&commondir_file) {
+        let relative = content.trim();
+        let resolved = git_dir.join(relative);
+        if let Ok(canonical) = resolved.canonicalize() {
+            return canonical;
         }
     }
     git_dir.to_path_buf()
