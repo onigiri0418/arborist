@@ -1,7 +1,11 @@
 use anyhow::Result;
+use chrono::Utc;
 use clap::Args;
 
-use crate::meta::WorktreeStatus;
+use crate::{
+    git,
+    meta::{self, WorktreeMeta, WorktreeStatus},
+};
 
 #[derive(Args)]
 pub struct TagArgs {
@@ -21,15 +25,63 @@ pub struct TagArgs {
     pub status: Option<WorktreeStatus>,
 }
 
-pub fn run(_args: TagArgs) -> Result<()> {
-    // TODO: implement
-    // 1. open_repo()
-    // 2. resolve worktree by name
-    // 3. meta::load()
-    // 4. if no flags: display current meta and exit
-    // 5. upsert_meta() with updated fields
-    // 6. meta::save()
-    // 7. display updated meta
-    println!("tag: not yet implemented");
+pub fn run(args: TagArgs) -> Result<()> {
+    let repo = git::open_repo()?;
+    let worktrees = git::list_worktrees(&repo)?;
+    let wt = git::resolve_worktree(&worktrees, &args.name)?;
+    let store = meta::load(&repo)?;
+
+    let has_updates = args.task.is_some() || args.memo.is_some() || args.status.is_some();
+
+    if !has_updates {
+        if let Some(m) = store.worktrees.get(&wt.name) {
+            print_meta(&wt.name, m);
+        } else {
+            println!("No metadata for '{}'", wt.name);
+        }
+        return Ok(());
+    }
+
+    let now = Utc::now();
+    let existing = store.worktrees.get(&wt.name).cloned();
+    let updated = match existing {
+        Some(mut m) => {
+            if let Some(task) = args.task {
+                m.task = Some(task);
+            }
+            if let Some(memo) = args.memo {
+                m.memo = Some(memo);
+            }
+            if let Some(status) = args.status {
+                m.status = status;
+            }
+            m.updated_at = now;
+            m
+        }
+        None => WorktreeMeta {
+            task: args.task,
+            memo: args.memo,
+            status: args.status.unwrap_or_default(),
+            created_at: now,
+            updated_at: now,
+        },
+    };
+
+    let name = wt.name.clone();
+    let store = meta::upsert_meta(store, &name, updated);
+    meta::save(&repo, &store)?;
+
+    if let Some(m) = store.worktrees.get(&name) {
+        print_meta(&name, m);
+    }
     Ok(())
+}
+
+fn print_meta(name: &str, m: &meta::WorktreeMeta) {
+    println!("Worktree: {name}");
+    println!("  task:       {}", m.task.as_deref().unwrap_or("--"));
+    println!("  memo:       {}", m.memo.as_deref().unwrap_or("--"));
+    println!("  status:     {}", format!("{:?}", m.status).to_lowercase());
+    println!("  created_at: {}", m.created_at);
+    println!("  updated_at: {}", m.updated_at);
 }

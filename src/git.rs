@@ -17,6 +17,7 @@ pub struct WorktreeInfo {
     pub head_summary: String,
     pub is_bare: bool,
     pub is_locked: bool,
+    pub is_main: bool,
     pub last_modified: SystemTime,
 }
 
@@ -41,6 +42,11 @@ pub fn open_repo() -> Result<Repository> {
     Ok(repo)
 }
 
+/// Open the git repository rooted at `path`.
+pub fn open_repo_at(path: &Path) -> Result<Repository> {
+    Ok(Repository::discover(path)?)
+}
+
 /// List all worktrees attached to the repository (main + linked).
 pub fn list_worktrees(repo: &Repository) -> Result<Vec<WorktreeInfo>> {
     let mut result = Vec::new();
@@ -52,7 +58,7 @@ pub fn list_worktrees(repo: &Repository) -> Result<Vec<WorktreeInfo>> {
             .and_then(|n| n.to_str())
             .unwrap_or("main")
             .to_string();
-        result.push(build_worktree_info(repo, &name, workdir, false)?);
+        result.push(build_worktree_info(repo, &name, workdir, false, true)?);
     }
 
     // Linked worktrees
@@ -64,7 +70,7 @@ pub fn list_worktrees(repo: &Repository) -> Result<Vec<WorktreeInfo>> {
             git2::WorktreeLockStatus::Locked(_)
         );
         let wt_repo = Repository::open(wt.path())?;
-        result.push(build_worktree_info(&wt_repo, name, wt.path(), is_locked)?);
+        result.push(build_worktree_info(&wt_repo, name, wt.path(), is_locked, false)?);
     }
 
     Ok(result)
@@ -75,6 +81,7 @@ fn build_worktree_info(
     name: &str,
     path: &Path,
     is_locked: bool,
+    is_main: bool,
 ) -> Result<WorktreeInfo> {
     let branch = repo.head().ok().and_then(|h| {
         if h.is_branch() {
@@ -107,6 +114,7 @@ fn build_worktree_info(
         head_summary,
         is_bare: repo.is_bare(),
         is_locked,
+        is_main,
         last_modified,
     })
 }
@@ -319,6 +327,7 @@ mod tests {
             head_summary: String::new(),
             is_bare: false,
             is_locked: false,
+            is_main: false,
             last_modified: SystemTime::UNIX_EPOCH,
         }
     }
