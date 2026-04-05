@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Args;
+use owo_colors::OwoColorize;
 
 use crate::{git, meta};
 
@@ -20,8 +21,14 @@ pub fn run(args: StatusArgs) -> Result<()> {
         .and_then(|p| p.canonicalize().ok());
 
     if !args.short {
-        println!("{:<2} {:<20} {:<8} {:<14} {}",
-            "", "NAME", "CHANGES", "DIFF", "TASK");
+        println!(
+            "{:<2} {} {} {} {}",
+            "",
+            format!("{:<20}", "NAME").bold(),
+            format!("{:<8}", "STATE").bold(),
+            format!("{:<14}", "DIFF").bold(),
+            "TASK".bold(),
+        );
     }
 
     for wt in &worktrees {
@@ -35,7 +42,6 @@ pub fn run(args: StatusArgs) -> Result<()> {
                 .map(|p| c.starts_with(&p))
                 .unwrap_or(false)
         });
-        let marker = if is_current { "*" } else { " " };
         let task = store
             .worktrees
             .get(&wt.name)
@@ -43,35 +49,53 @@ pub fn run(args: StatusArgs) -> Result<()> {
             .unwrap_or("");
 
         if args.short {
-            if stat.is_clean() {
-                println!("{}{} clean", marker, wt.name);
+            let marker = if is_current {
+                format!("{}", "*".green().bold())
             } else {
-                println!("{}{} +{} -{}", marker, wt.name, stat.insertions, stat.deletions);
+                " ".to_string()
+            };
+            if stat.is_clean() {
+                println!("{}{} {}", marker, wt.name, "clean".green());
+            } else {
+                println!(
+                    "{}{} {} {}",
+                    marker,
+                    wt.name,
+                    format!("+{}", stat.insertions).green(),
+                    format!("-{}", stat.deletions).red(),
+                );
             }
         } else {
-            let changes = if stat.is_clean() {
-                "clean".to_string()
+            let marker = if is_current {
+                format!("{}", "*".green().bold())
             } else {
-                "dirty".to_string()
+                " ".to_string()
             };
-            let diff = if stat.is_clean() {
-                String::new()
+            let name_col = format!("{:<20}", truncate_str(&wt.name, 20));
+            let state_col = if stat.is_clean() {
+                format!("{:<8}", "clean").green().to_string()
             } else {
-                format!("+{} -{}", stat.insertions, stat.deletions)
+                format!("{:<8}", "dirty").red().to_string()
             };
-            println!("{:<2} {:<20} {:<8} {:<14} {}",
-                marker,
-                truncate(&wt.name, 20),
-                changes,
-                diff,
-                task,
-            );
+            let diff_col = if stat.is_clean() {
+                format!("{:<14}", "")
+            } else {
+                let ins = format!("+{}", stat.insertions).green().to_string();
+                let del = format!("-{}", stat.deletions).red().to_string();
+                format!("{} {:<8}", ins, del)
+            };
+
+            println!("{:<2} {} {} {} {}", marker, name_col, state_col, diff_col, task);
         }
     }
 
     Ok(())
 }
 
-fn truncate(s: &str, max: usize) -> &str {
-    if s.len() <= max { s } else { &s[..max] }
+fn truncate_str(s: &str, max: usize) -> &str {
+    let mut end = max;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    &s[..end.min(s.len())]
 }

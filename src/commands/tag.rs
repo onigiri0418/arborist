@@ -1,6 +1,7 @@
 use anyhow::Result;
 use chrono::Utc;
 use clap::Args;
+use owo_colors::OwoColorize;
 
 use crate::{
     git,
@@ -37,7 +38,7 @@ pub fn run(args: TagArgs) -> Result<()> {
         if let Some(m) = store.worktrees.get(&wt.name) {
             print_meta(&wt.name, m);
         } else {
-            println!("No metadata for '{}'", wt.name);
+            println!("No metadata for '{}'", wt.name.yellow());
         }
         return Ok(());
     }
@@ -77,11 +78,20 @@ pub fn run(args: TagArgs) -> Result<()> {
     Ok(())
 }
 
+fn colored_status_label(status: &WorktreeStatus) -> String {
+    let label = format!("{:?}", status).to_lowercase();
+    match status {
+        WorktreeStatus::Active => label.blue().to_string(),
+        WorktreeStatus::Paused => label.yellow().to_string(),
+        WorktreeStatus::Done => label.green().to_string(),
+    }
+}
+
 fn print_meta(name: &str, m: &meta::WorktreeMeta) {
-    println!("Worktree: {name}");
-    println!("  task:       {}", m.task.as_deref().unwrap_or("--"));
-    println!("  memo:       {}", m.memo.as_deref().unwrap_or("--"));
-    println!("  status:     {}", format!("{:?}", m.status).to_lowercase());
-    println!("  created_at: {}", m.created_at);
-    println!("  updated_at: {}", m.updated_at);
+    println!("{} {}", "Worktree:".bold(), name.bold());
+    println!("  {}  {}", "task:      ".dimmed(), m.task.as_deref().unwrap_or("--"));
+    println!("  {}  {}", "memo:      ".dimmed(), m.memo.as_deref().unwrap_or("--"));
+    println!("  {}  {}", "status:    ".dimmed(), colored_status_label(&m.status));
+    println!("  {}  {}", "created_at:".dimmed(), m.created_at.format("%Y-%m-%d %H:%M UTC").dimmed());
+    println!("  {}  {}", "updated_at:".dimmed(), m.updated_at.format("%Y-%m-%d %H:%M UTC").dimmed());
 }

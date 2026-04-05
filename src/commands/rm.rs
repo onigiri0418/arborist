@@ -1,5 +1,8 @@
+use std::io::IsTerminal;
+
 use anyhow::Result;
 use clap::Args;
+use owo_colors::OwoColorize;
 
 use crate::{error::ArboristError, git, meta};
 
@@ -31,12 +34,31 @@ pub fn run(args: RmArgs) -> Result<()> {
     }
 
     let name = wt.name.clone();
+    let path = wt.path.display().to_string();
+
+    // Show interactive confirmation only when running in a real terminal.
+    // In non-interactive contexts (pipes, CI, tests) the prompt is skipped.
+    if !args.force && std::io::stdin().is_terminal() {
+        let confirmed = inquire::Confirm::new(&format!(
+            "Remove worktree '{}' at {}?",
+            name.yellow(),
+            path.dimmed()
+        ))
+        .with_default(false)
+        .prompt()?;
+
+        if !confirmed {
+            println!("{}", "Aborted.".dimmed());
+            return Ok(());
+        }
+    }
+
     git::remove_worktree(&repo, &name, args.force)?;
 
     let store = meta::load(&repo)?;
     let store = meta::remove_meta(store, &name);
     meta::save(&repo, &store)?;
 
-    println!("Removed worktree '{name}'");
+    println!("{} '{}'", "Removed worktree".green(), name.bold());
     Ok(())
 }

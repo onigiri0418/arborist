@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Args;
+use owo_colors::OwoColorize;
 
 use crate::{git, meta, meta::WorktreeStatus};
 
@@ -41,14 +42,14 @@ pub fn run(args: CleanArgs) -> Result<()> {
         .collect();
 
     if candidates.is_empty() {
-        println!("Nothing to clean.");
+        println!("{}", "Nothing to clean.".dimmed());
         return Ok(());
     }
 
     if args.dry_run {
-        println!("Would remove:");
+        println!("{}", "Would remove:".yellow().bold());
         for wt in &candidates {
-            println!("  {} ({})", wt.name, wt.path.display());
+            println!("  {} {}", wt.name.yellow(), format!("({})", wt.path.display()).dimmed());
         }
         return Ok(());
     }
@@ -59,7 +60,7 @@ pub fn run(args: CleanArgs) -> Result<()> {
             let s = meta::load(&repo)?;
             let s = meta::remove_meta(s, &wt.name);
             meta::save(&repo, &s)?;
-            println!("Removed '{}'", wt.name);
+            println!("{} '{}'", "Removed".green(), wt.name.bold());
         }
     } else {
         // Interactive selection via inquire
@@ -76,7 +77,7 @@ pub fn run(args: CleanArgs) -> Result<()> {
             let s = meta::load(&repo)?;
             let s = meta::remove_meta(s, name);
             meta::save(&repo, &s)?;
-            println!("Removed '{name}'");
+            println!("{} '{}'", "Removed".green(), name.bold());
         }
     }
 
