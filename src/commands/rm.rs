@@ -27,9 +27,10 @@ pub fn run(args: RmArgs) -> Result<()> {
     // Refuse to remove the worktree we're currently inside
     if let Ok(cwd) = std::env::current_dir()
         && let (Ok(cwd_c), Ok(wt_c)) = (cwd.canonicalize(), wt.path.canonicalize())
-            && cwd_c.starts_with(&wt_c) {
-                return Err(ArboristError::CannotRemoveCurrent.into());
-            }
+        && cwd_c.starts_with(&wt_c)
+    {
+        return Err(ArboristError::CannotRemoveCurrent.into());
+    }
 
     let name = wt.name.clone();
     let path = wt.path.display().to_string();
