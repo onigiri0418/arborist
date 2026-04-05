@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Git worktree manager for AI-driven development workflows"
 license = "MIT"
-repository = "https://github.com/Taiyaki/arborist"
+repository = "https://github.com/onigiri0418/arborist"
 
 [[bin]]
 name = "arborist"
